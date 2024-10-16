@@ -23,7 +23,7 @@ if (isset($_SESSION['user_name'])) {
     // Function to delete the user image
     function deleteUserImage($conn, $name)
     {
-        $update = "UPDATE user_form SET imgpath = 'uploads/user1.png' WHERE name = ?";
+        $update = "UPDATE user_form SET imgpath = 'uploads/user.png' WHERE name = ?";
         $stmt = $conn->prepare($update);
         $stmt->bind_param("s", $name);
         return $stmt->execute();
