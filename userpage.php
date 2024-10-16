@@ -337,7 +337,7 @@ if (isset($_SESSION['user_name'])) {
 <body>
     <div id="main" class="user-container">
    
-        <div class="user-details"><h1>Your Account</h1></div>
+      <div class="user-details"><h1>Your Account</h1></div>
         <div class="user-details-container">
             <div class="user-details">
                 <div class="user-label">Profile Photo</div>
@@ -345,7 +345,7 @@ if (isset($_SESSION['user_name'])) {
                     <div class="image-container">
                     <?php if (!empty($userImage)) : ?>
                         <label for="imageInput" class="profile-img-wrapper">
-                            <img src="<?php echo $userImage; ?>" alt="User Image">
+                            <img src="<?php echo htmlspecialchars($userImage); ?>" alt="User Image">
                             <div class="camera-overlay">
                                 <i class="fas fa-camera"></i>
                             </div>
@@ -491,50 +491,53 @@ if (isset($_SESSION['user_name'])) {
 
     <script>
 
-document.getElementById('changePicButton').addEventListener('click', function() {
-            document.getElementById('imageInput').click(); // Click on hidden input field
-        });
+ document.getElementById('changePicButton').addEventListener('click', function() {
+        document.getElementById('imageInput').click();
+    });
 
-        // Function to handle file selection
-        document.getElementById('imageInput').addEventListener('change', function() {
-            var file = this.files[0];
-            if (file) {
-                var formData = new FormData();
-                formData.append('file', file);
+       document.getElementById('imageInput').addEventListener('change', function() {
+        var file = this.files[0];
+        if (file) {
+            var formData = new FormData();
+            formData.append('file', file);
 
-                // Send AJAX request to upload or update image
-                var xhr = new XMLHttpRequest();
-                xhr.open('POST', 'upload_image.php'); // PHP script to handle image upload
-                xhr.onload = function() {
-                    if (xhr.status === 200) {
-                        // Image uploaded or updated successfully
-                        console.log('Image uploaded:', xhr.responseText);
-                        // Reload the page to display the updated image
-                        location.reload();
-                    } else {
-                        // Error handling
-                        console.error('Image upload failed:', xhr.responseText);
-                    }
-                };
-                xhr.send(formData);
-            }
-        });
-
-        document.getElementById('removePhoto').addEventListener('click', function() {
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', 'upload_image.php');
-    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    xhr.onload = function() {
-        if (xhr.status === 200) {
-            console.log(xhr.responseText);
-            // Reload the page to reflect the changes
-            location.reload();
-        } else {
-            console.error('Error:', xhr.responseText);
+            fetch('upload_image.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('Image uploaded:', data.imageUrl);
+                    document.querySelector('.profile-img-wrapper img').src = data.imageUrl;
+                    location.reload();
+                } else {
+                    console.error('Image upload failed:', data.error);
+                }
+            })
+            .catch(error => console.error('Error:', error));
         }
-    };
-    xhr.send('delete_image=true');
-});
+    });
+
+         document.getElementById('removePhoto').addEventListener('click', function() {
+        fetch('upload_image.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'delete_image=true'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log(data.message);
+                location.reload();
+            } else {
+                console.error('Error:', data.error);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    });
 
 document.getElementById("editButton").addEventListener("click", function() {
     // Hide the username paragraph and edit button
